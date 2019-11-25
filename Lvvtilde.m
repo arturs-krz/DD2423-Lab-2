@@ -19,4 +19,4 @@ Lxx = filter2(dxxmask, inpic, shape);
 Lxy = filter2(dxymask, inpic, shape);
 Lyy = filter2(dyymask, inpic, shape);
 
-pixels = (Lx.^2 .* Lxx) + (2 * Lx .* Ly .* Lxy) + (Ly.^2 .* Lyyx);
+pixels = (Lx.^2 .* Lxx) + (2 * Lx .* Ly .* Lxy) + (Ly.^2 .* Lyy);
