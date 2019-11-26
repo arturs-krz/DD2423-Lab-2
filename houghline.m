@@ -9,12 +9,13 @@ acc = zeros(nrho, ntheta);
 linepar = zeros(nlines, 2);
 
 % Define a coordinate system in the accumulator space
-thetas = linspace(0, 2*pi, ntheta); % ntheta points from 0 to pi
+thetas = linspace(-pi/2, pi/2, ntheta); % ntheta points
 cos_thetas = cos(thetas); % precompute
 sin_thetas = sin(thetas);
 
 [sx, sy] = size(magnitude);
-rhos = linspace(0, floor(sqrt(sx^2 + sy^2)), nrho);
+img_diameter = sqrt(sx^2 + sy^2);
+rhos = linspace(-img_diameter, img_diameter, nrho);
 
 % Loop over all the input curves (cf. pixelplotcurves)
 insize = size(curves, 2); % num columns
