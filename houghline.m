@@ -1,4 +1,4 @@
-function [linepar acc] = houghline(curves, magnitude, nrho, ntheta, threshold, nlines, verbose)
+function [linepar acc] = houghline(curves, magnitude, nrho, ntheta, threshold, nlines, verbose, acc_dt, acc_k, weighted)
 % Check if input appear to be valid
 % Allocate accumulator space
 
@@ -23,6 +23,7 @@ numcurves = 0;
 
 % C = [level1 x1 x2 x3 ... level2 x2 x2 x3 ...;
 %      pairs1 y1 y2 y3 ... pairs2 y2 y2 y3 ...] swap x and y rows
+%mean_mag = mean(magnitude, 'all');
 while trypointer <= insize
     polylength = curves(2, trypointer); % num pairs in level
     numcurves = numcurves + 1;
@@ -46,8 +47,13 @@ while trypointer <= insize
                 rho = x*cos_theta + y*sin_theta;
                 % Compute index values in the accumulator space
                 [dif, rho_i] = min(abs(rhos - rho)); % find closest rho index
+                
                 % Update the accumulator
-                acc(rho_i, theta_i) = acc(rho_i, theta_i) + 1;
+                if weighted == true
+                   acc(rho_i, theta_i) = acc(rho_i, theta_i) + 1 - 1/(1 + (magnitude(floor(x), floor(y)) - threshold));
+                else
+                   acc(rho_i, theta_i) = acc(rho_i, theta_i) + 1; 
+                end
             end
         end
     end
@@ -55,7 +61,9 @@ end
 
 % accumulation done
 % smooth accumulator histogram
-acc = binsepsmoothiter(acc, 0.3, 10);
+if acc_dt > 0 & acc_k > 0
+    acc = binsepsmoothiter(acc, acc_dt, acc_k);
+end
 
 % Extract local maxima from the accumulator
 [pos, value] = locmax8(acc);
