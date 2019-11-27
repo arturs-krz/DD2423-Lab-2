@@ -6,7 +6,6 @@ function [linepar acc] = houghline(curves, magnitude, nrho, ntheta, threshold, n
 %delta_ro = 1; % quantization for rho
 
 acc = zeros(nrho, ntheta);
-linepar = zeros(nlines, 2);
 
 % Define a coordinate system in the accumulator space
 thetas = linspace(-pi/2, pi/2, ntheta); % ntheta points
@@ -38,19 +37,25 @@ while trypointer <= insize
         
         % Optionally, keep value from magnitude image
         % Loop over a set of theta values
-        for theta_i = 1:size(thetas, 2) 
-            cos_theta = cos_thetas(theta_i);
-            sin_theta = sin_thetas(theta_i);
-            % Compute rho for each theta value
-            rho = x*cos_theta + y*sin_theta;
-            % Compute index values in the accumulator space
-            [dif, rho_i] = min(abs(rhos - rho)); % find closest rho index
-            % Update the accumulator
-            acc(rho_i, theta_i) = acc(rho_i, theta_i) + 1;
+
+        if magnitude(floor(x),floor(y)) > threshold
+            for theta_i = 1:size(thetas, 2) 
+                cos_theta = cos_thetas(theta_i);
+                sin_theta = sin_thetas(theta_i);
+                % Compute rho for each theta value
+                rho = x*cos_theta + y*sin_theta;
+                % Compute index values in the accumulator space
+                [dif, rho_i] = min(abs(rhos - rho)); % find closest rho index
+                % Update the accumulator
+                acc(rho_i, theta_i) = acc(rho_i, theta_i) + 1;
+            end
         end
     end
 end
+
 % accumulation done
+% smooth accumulator histogram
+acc = binsepsmoothiter(acc, 0.3, 10);
 
 % Extract local maxima from the accumulator
 [pos, value] = locmax8(acc);
@@ -58,6 +63,12 @@ end
 
 nmaxima = size(value, 1); % number of retrieved maximum points
 
+% if failed to retrieve the requested number of lines, return all maxima
+if nmaxima < nlines
+   nlines = nmaxima;
+end
+
+linepar = zeros(nlines, 2);
 % Delimit the number of responses if necessary
 % extract nlines top lines
 for i = 1:nlines
